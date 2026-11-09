@@ -73,6 +73,7 @@ type HotkeyOptions = {
   cancelCommentDraft: () => void
   hasComments: () => boolean
   minimizeMesurer: () => void
+  restoreMesurer?: () => void
   shortcutsEnabled: boolean
   minimized: boolean
   undo: () => void
@@ -153,6 +154,22 @@ export const useHotkeys = (options: HotkeyOptions) => {
         !isMesurerKeyboardOwned(target) &&
         !isEscapeKey(event)
       ) return
+      // ` folds the toolbar away to use the page (comments stay), and brings it back.
+      if (
+        (event.code === "Backquote" || event.key === "`") &&
+        !event.repeat &&
+        !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey &&
+        current.shortcutsEnabled &&
+        current.enabled &&
+        !isTypingInPage(target) &&
+        !isTypingInMesurer(event, target)
+      ) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        if (current.minimized) current.restoreMesurer?.()
+        else current.minimizeMesurer()
+        return
+      }
       if (isEscapeKey(event)) {
         if (event.repeat) return
         if (current.minimized) return

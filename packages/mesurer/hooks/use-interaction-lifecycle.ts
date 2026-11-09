@@ -108,6 +108,7 @@ type Options = {
   setGuideOrientation: Dispatch<SetStateAction<"vertical" | "horizontal">>;
   onInteract: () => void;
   onMinimize: () => void;
+  onRestore?: () => void;
   onToggleSettings: () => void;
   onToggleLayoutGuides: () => void;
   onCloseLayoutGuidesMenu: () => void;
@@ -252,6 +253,7 @@ export const useInteractionLifecycle = (options: Options) => {
      cancelCommentDraft: options.cancelCommentDraft,
      hasComments: options.hasComments,
     minimizeMesurer: options.onMinimize,
+    restoreMesurer: options.onRestore,
     shortcutsEnabled: options.shortcutsEnabled,
     minimized: options.minimized,
     undo: options.undo,

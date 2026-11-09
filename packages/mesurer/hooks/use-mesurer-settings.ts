@@ -103,6 +103,8 @@ export const useMesurerSettings = ({
     persistedSettings.toolbarDock ?? DEFAULT_TOOLBAR_DOCK,
   );
   const [toolbarAutoHide, setToolbarAutoHide] = useState(persistedSettings.toolbarAutoHide ?? false);
+  // Comment pins stay on the page while the toolbar is minimized, to browse the site with them.
+  const [commentsWhileMinimized, setCommentsWhileMinimized] = useState(persistedSettings.commentsWhileMinimized ?? true);
   const [penKind, setPenKind] = useState<PenChoice>(persistedSettings.penKind ?? DEFAULT_PEN_KIND);
   const [penSettings, setPenSettings] = useState<PenSettings>(persistedSettings.penSettings ?? {});
   const [colorPickerFormats, setColorPickerFormats] = useState(
@@ -143,6 +145,7 @@ export const useMesurerSettings = ({
     setToolbarPosition({ x: 16, y: 16 });
     setToolbarDock(DEFAULT_TOOLBAR_DOCK);
     setToolbarAutoHide(false);
+    setCommentsWhileMinimized(true);
     setPenKind(DEFAULT_PEN_KIND);
     setPenSettings({});
     setColorPickerFormats([...defaults.colorPickerFormats]);
@@ -183,6 +186,7 @@ export const useMesurerSettings = ({
       toolbarPosition,
       toolbarDock,
       toolbarAutoHide,
+      commentsWhileMinimized,
       penKind,
       penSettings,
       guideStyle,
@@ -210,6 +214,7 @@ export const useMesurerSettings = ({
     toolbarPosition,
     toolbarDock,
     toolbarAutoHide,
+    commentsWhileMinimized,
     penKind,
     penSettings,
     rulerSettings,
@@ -251,6 +256,7 @@ export const useMesurerSettings = ({
     if (settings.toolbarPosition !== undefined) setToolbarPosition(settings.toolbarPosition);
     if (settings.toolbarDock !== undefined) setToolbarDock(settings.toolbarDock);
     if (settings.toolbarAutoHide !== undefined) setToolbarAutoHide(settings.toolbarAutoHide);
+    if (settings.commentsWhileMinimized !== undefined) setCommentsWhileMinimized(settings.commentsWhileMinimized);
     if (settings.penKind !== undefined) setPenKind(settings.penKind);
     if (settings.penSettings !== undefined) setPenSettings(settings.penSettings);
     if (settings.snapEnabled !== undefined) toggles.setSnapEnabled(settings.snapEnabled);
@@ -312,6 +318,8 @@ export const useMesurerSettings = ({
     setToolbarDock,
     toolbarAutoHide,
     setToolbarAutoHide,
+    commentsWhileMinimized,
+    setCommentsWhileMinimized,
     penKind,
     setPenKind,
     penSettings,

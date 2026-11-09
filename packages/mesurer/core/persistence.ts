@@ -85,6 +85,7 @@ export type MesurerStoredSettings = {
   toolbarPosition?: ToolbarPlacement
   toolbarDock?: ToolbarDock
   toolbarAutoHide?: boolean
+  commentsWhileMinimized?: boolean
   penKind?: PenChoice
   penSettings?: PenSettings
   highlightColor?: string
@@ -540,6 +541,7 @@ export const normalizeStoredSettings = (value: unknown): MesurerStoredSettings =
     ...(isToolbarPosition(input.toolbarPosition) ? { toolbarPosition: normalizeToolbarPlacement(input.toolbarPosition) } : {}),
     ...(isToolbarDock(input.toolbarDock) ? { toolbarDock: input.toolbarDock } : {}),
     ...(typeof input.toolbarAutoHide === "boolean" ? { toolbarAutoHide: input.toolbarAutoHide } : {}),
+    ...(typeof input.commentsWhileMinimized === "boolean" ? { commentsWhileMinimized: input.commentsWhileMinimized } : {}),
     ...(isPenChoice(input.penKind) ? { penKind: input.penKind } : {}),
     ...(input.penSettings ? { penSettings: normalizePenSettings(input.penSettings) } : {}),
     ...(typeof input.highlightColor === "string" ? { highlightColor: input.highlightColor } : {}),

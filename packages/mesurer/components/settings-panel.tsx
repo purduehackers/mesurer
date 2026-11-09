@@ -111,6 +111,8 @@ type SettingsPanelProps = {
     setToolbarDock: Dispatch<SetStateAction<ToolbarDock>>
     toolbarAutoHide: boolean
     setToolbarAutoHide: Dispatch<SetStateAction<boolean>>
+    commentsWhileMinimized: boolean
+    setCommentsWhileMinimized: Dispatch<SetStateAction<boolean>>
     onMinimize: () => void
     onResetSettings: () => void
     onClearWorkspace: () => void
@@ -407,6 +409,8 @@ export function SettingsPanel({
     setToolbarDock,
     toolbarAutoHide,
     setToolbarAutoHide,
+    commentsWhileMinimized,
+    setCommentsWhileMinimized,
     onMinimize,
     onResetSettings,
     onClearWorkspace,
@@ -678,6 +682,7 @@ export function SettingsPanel({
         {toolbarDock === "snap" ? (
           <div className="msr:col-span-2"><SettingsSwitch label="Auto-hide" checked={toolbarAutoHide} onChange={setToolbarAutoHide} /></div>
         ) : null}
+        <div className="msr:col-span-2"><SettingsSwitch label="Comments when minimized" checked={commentsWhileMinimized} onChange={setCommentsWhileMinimized} /></div>
         <div className={`msr:col-span-2 msr:grid msr:h-8 ${SETTINGS_COLUMNS} msr:items-center msr:gap-0 msr:text-[12px] msr:text-ink-700`}>
           <span>Toolbar</span>
           <SettingsButton

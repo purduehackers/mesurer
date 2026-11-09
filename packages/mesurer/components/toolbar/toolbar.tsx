@@ -43,6 +43,7 @@ import {
   ColorPickerIcon,
   CursorIcon,
   GearIcon,
+  MinimizeIcon,
   MesurerMarkIcon,
   RulerIcon,
   RulersIcon,
@@ -86,6 +87,7 @@ function ToolbarComponent(
     minimized,
     onInteract,
     onRestore,
+    onMinimize,
     onCancelTransient,
     tools,
     colorPicker,
@@ -1252,6 +1254,20 @@ function ToolbarComponent(
                                   )
                                   : null}
                               </div> : null}
+                              {onMinimize ? (
+                                <ToolbarButton
+                                  {...tool("minimize")}
+                                  active={false}
+                                  label="Minimize"
+                                  shortcut="`"
+                                  onClick={() => {
+                                    dismissCaptureToasts();
+                                    onMinimize();
+                                  }}
+                                >
+                                  <MinimizeIcon size={20} />
+                                </ToolbarButton>
+                              ) : null}
                             </ToolbarGroup>
                           </div>
                         </div>

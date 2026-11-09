@@ -111,6 +111,8 @@ export type ToolbarProps = {
   minimized: boolean;
   onInteract: () => void;
   onRestore: () => void;
+  /** Folds the toolbar down to its icon, leaving the page free to use (browse mode). */
+  onMinimize?: () => void;
   onCancelTransient: () => void;
   tools: ToolbarTools;
   colorPicker: ToolbarColorPicker;

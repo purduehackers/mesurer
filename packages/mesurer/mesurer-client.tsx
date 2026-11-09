@@ -1542,6 +1542,7 @@ export function MesurerClient({
     setGuideOrientation,
     onInteract: activateToolbar,
     onMinimize: minimizeMesurer,
+    onRestore: restoreToolbar,
     onToggleSettings: toggleSettings,
     onToggleLayoutGuides: toggleLayoutGuides,
     onCloseLayoutGuidesMenu: closeLayoutGuidesMenu,
@@ -1857,7 +1858,8 @@ export function MesurerClient({
           onActivateEditor: activateTextEditor,
           style: settings.textStyle,
         },
-        comments: overlayComments.length > 0 || toolMode === "comments" ? {
+        comments: (overlayComments.length > 0 || toolMode === "comments") &&
+          !(minimized && !settings.commentsWhileMinimized) ? {
           comments: overlayComments,
           commentFilter,
           rects: commentRuntimeSnapshot.rects,
@@ -1937,6 +1939,7 @@ export function MesurerClient({
         minimized,
         onInteract: activateToolbar,
         onRestore: restoreToolbar,
+        onMinimize: minimizeMesurer,
         onCancelTransient: clearAllTransientState,
         features,
         tools: {
@@ -2115,6 +2118,8 @@ export function MesurerClient({
                 setToolbarDock: settings.setToolbarDock,
                 toolbarAutoHide: settings.toolbarAutoHide,
                 setToolbarAutoHide: settings.setToolbarAutoHide,
+                commentsWhileMinimized: settings.commentsWhileMinimized,
+                setCommentsWhileMinimized: settings.setCommentsWhileMinimized,
                 onMinimize: minimizeMesurer,
                 onResetSettings: resetSettings,
                 onClearWorkspace: clearWorkspace,
