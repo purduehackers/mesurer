@@ -57,6 +57,7 @@ function App() {
 | `persistKey`            | Optional workspace storage key; default workspaces are isolated per browser tab. |
 | `portalTarget`          | Optional element or shadow root used as the overlay portal mount target.      |
 | `persistence`           | Optional storage adapter for custom or extension-backed persistence.           |
+| `bridge`                | Keep comments in the project through the dev server (see [Agent bridge](#agent-bridge)). `true` or an endpoint. |
 | `captureVisibleTab`      | Optional function supplying a PNG of the visible tab for Screenshot capture.  |
 | `features`               | Enable or disable `screenshot`, `rulers`, `settings`, and `responsive`; each defaults to `true`. |
 | `onPersistenceError`    | Called when persistence is unavailable or a storage write fails.              |
@@ -79,6 +80,8 @@ Props are the defaults. Saved settings override them; **Use defaults** restores 
 | Shortcut               | Action                                                |
 | ---------------------- | ----------------------------------------------------- |
 | `M`                    | Toggle Comments mode.                                 |
+| `E`                    | Toggle the Tweak tool.                                |
+| `` ` ``                | Minimize Mesurer to use the page (comment pins stay), or bring it back. |
 | `I`                    | Toggle Inspect mode.                                  |
 | `S`                    | Toggle Select mode for annotations.                   |
 | `A`                    | Toggle Typography mode.                               |
@@ -112,6 +115,42 @@ Props are the defaults. Saved settings override them; **Use defaults** restores 
 <Mesurer initialState={{ minimized: true, toolbarPosition: { x: 24, y: 24 } }} />
 ```
 
+## Agent bridge
+
+With the bridge on, comments are kept in `.mesurer/comments.json` in your project (the folder
+ignores itself in git). A coding agent reads them, replies and resolves them with the CLI, and
+the browser shows that live. It runs only on the dev server.
+
+```js
+// astro.config.mjs (or vite.config.ts: plugins: [mesurer()])
+import mesurer from "mesurer/vite";
+export default defineConfig({ vite: { plugins: [mesurer()] } });
+```
+
+```astro
+<Mesurer client:only="react" bridge={import.meta.env.DEV} />
+```
+
+```sh
+npx mesurer comments list            # open comments, with source file:line when Astro gives one
+npx mesurer comments show <id>
+npx mesurer comments reply <id> "…"
+npx mesurer comments resolve <id> "what changed"
+npx mesurer comments instructions    # the guide for agents (bridge/AGENT.md)
+```
+
+For other Node servers, `mesurer/server` exports `createCommentsHandler()`, a Connect-style
+middleware. In React apps, `createBridgePersistence()` can be passed as `persistence`.
+
+## Tweak tool
+
+Press `E`, click an element, and change it with the keyboard: `↑`/`↓` change the value
+(`Shift` for ×10), `←`/`→` move between properties, `T` snaps to the page's tokens (Tailwind v4
+`@theme`, shadcn variables, any `:root` custom properties), `A` applies to every element with the
+same classes, hold `B` to see before. `Enter` saves the changes as a comment with exact
+`from → to` values and tokens, `Esc` reverts. Saved changes stay previewed until the page's own
+CSS matches them.
+
 ## Features
 
 - **Inspect mode** - Click elements to measure their bounds
@@ -128,8 +167,10 @@ Props are the defaults. Saved settings override them; **Use defaults** restores 
 - **Distance overlays** - Hold Alt for quick spacing checks
 - **Undo/redo** - Command history for guides, measurements, arrows, pen strokes, and text annotations
 - **Comments** - Pin threads to live elements, add replies, move targets, search threads, and copy structured feedback for agents
+- **Agent bridge** - Keep comments in the project for a coding agent to answer and resolve, live
+- **Tweak** - Nudge spacing, radius, type and colors with the keyboard, snapped to design tokens, and hand the exact changes to an agent
 - **Settings** - Configure selection, guide, ruler, arrow, color, format, and persistence behavior
-- **Workspace controls** - Persist page workspaces, restore defaults, clear annotations, and minimize Mesurer to a single toolbar button
+- **Workspace controls** - Persist page workspaces, restore defaults, clear annotations, and minimize Mesurer to a single toolbar button (from the toolbar or with `` ` ``), keeping comment pins on the page
 
 ## Requirements
 

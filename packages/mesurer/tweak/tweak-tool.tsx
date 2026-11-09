@@ -558,7 +558,8 @@ function TweakPanel(props: TweakPanelProps) {
       role="dialog"
       aria-label="Tweak"
       className="msr:pointer-events-auto msr:fixed msr:flex msr:flex-col msr:rounded-lg msr:bg-surface msr:text-[12px] msr:text-ink-900 msr:shadow-floating"
-      style={{ left, top, width: PANEL_WIDTH, maxHeight: viewportHeight - 16, zIndex: 95 }}
+      // Never past the bottom of the window: the property list scrolls instead.
+      style={{ left, top, width: PANEL_WIDTH, maxHeight: viewportHeight - top - 8, zIndex: 95 }}
       onPointerDown={(event) => event.stopPropagation()}
     >
       <div className="msr:flex msr:items-start msr:gap-2 msr:border-b msr:border-ink-100 msr:px-3 msr:py-2">
