@@ -85,6 +85,11 @@ export const useCommentState = (
     return comment
   }
 
+  // A thread made whole somewhere else (a Tweak), added as it is.
+  const addThread = (thread: CommentThread) => {
+    updateComments((previous) => [...previous, thread])
+  }
+
   const deleteComment = (id: string) => {
     updateComments((previous) => previous.filter((comment) => comment.id !== id))
     setSelectedId((previous) => (previous === id ? null : previous))
@@ -163,6 +168,7 @@ export const useCommentState = (
     createDraft,
     cancelDraft,
     commitDraft,
+    addThread,
     addMessage,
     deleteComment,
     deleteAllComments,

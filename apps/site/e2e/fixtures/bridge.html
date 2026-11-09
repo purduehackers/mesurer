@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Comments bridge fixture</title>
+    <style>
+      /* Design tokens as Tailwind v4 writes them. */
+      @layer theme {
+        :root, :host {
+          --spacing: 0.25rem;
+          --radius-sm: 0.25rem;
+          --radius-lg: 0.5rem;
+          --text-sm: 0.875rem;
+          --text-sm--line-height: 1.43;
+          --text-4xl: 2.25rem;
+          --color-red-500: oklch(63.7% 0.237 25.331);
+          --color-blue-500: oklch(62.3% 0.214 259.815);
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

@@ -221,7 +221,9 @@ export const MesurerOverlay = memo(function MesurerOverlay({
     overlayVisible &&
     (toolMode !== "none" || Boolean(comments?.selectedId)) &&
     toolMode !== "xray" &&
-    toolMode !== "rulers"
+    toolMode !== "rulers" &&
+    // The Tweak tool picks elements itself, and leaves the page its pointer between picks.
+    toolMode !== "tweak"
   const overlayCapturesPointer = overlayInteractive
   const selectionVisible = toolMode === "select" && !minimized
   const showGuidePreview = interactive && guidesEnabled && Boolean(guides.preview)

@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { TweakTool, type TweakToolProps } from "../tweak/tweak-tool";
 import { type ComponentPropsWithoutRef, type RefObject } from "react";
 import { RulersOverlay } from "./rulers-overlay";
 import { LayoutGuidesOverlay } from "./layout-guides-overlay";
@@ -39,6 +40,7 @@ type MesurerPortalProps = {
   layoutGuides: LayoutGuide[];
   layoutGuidesVisible?: boolean;
   responsive?: Omit<ComponentPropsWithoutRef<typeof ResponsiveInspector>, "layoutGuides"> | null;
+  tweak?: TweakToolProps;
 };
 
 export function MesurerPortal({
@@ -56,6 +58,7 @@ export function MesurerPortal({
   layoutGuides,
   layoutGuidesVisible = false,
   responsive = null,
+  tweak,
 }: MesurerPortalProps) {
   const ownerWindow = portalTarget.ownerDocument.defaultView;
   // Keeps a press on the tool switch inside Mesurer. Base UI dismisses floating surfaces from
@@ -107,6 +110,7 @@ export function MesurerPortal({
         <ResponsiveInspector {...responsive} layoutGuides={enabled && layoutGuidesVisible ? layoutGuides : NO_LAYOUT_GUIDES} />
       ) : null}
       <MesurerOverlay {...overlay} />
+      {tweak ? <TweakTool {...tweak} /> : null}
       <ScreenshotSelectOverlay ref={screenshotOverlayRef} {...screenshot} />
       {screenRecording.recording && screenRecording.rect ? (
         <div className="msr:pointer-events-none msr:absolute msr:inset-0 msr:z-[80]">

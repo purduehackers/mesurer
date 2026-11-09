@@ -321,7 +321,7 @@ test("the toolbar swings a quarter turn between horizontal and vertical", async 
   if (!box) throw new Error("toolbar not visible");
   await page.mouse.move(box.x + box.width / 4, box.y + box.height / 2);
   await page.mouse.down();
-  await page.mouse.move(80, 300, { steps: 10 });
+  await page.mouse.move(140, 300, { steps: 10 });
   const row = await toolbar.boundingBox();
   const rowIcon = await boxOf("Select (S)");
   await page.mouse.move(30, 300);
@@ -385,16 +385,16 @@ test("a dragged toolbar stays under the pointer through a glue and a release", a
   await moveTo(30, 300);
   await expect(toolbar).toHaveAttribute("data-orientation", "vertical");
   await moveTo(30, 300);
-  await moveTo(30, 340);
+  await moveTo(30, 300);
   // Off the left zone it is free and stays upright under the pointer, however far it goes.
-  await moveTo(52, 340);
+  await moveTo(52, 300);
   await expect(toolbar).toHaveAttribute("data-orientation", "vertical");
-  await moveTo(300, 340);
+  await moveTo(300, 300);
   await expect(toolbar).toHaveAttribute("data-orientation", "vertical");
   // The top zone lays it flat, and from there the middle keeps it flat.
   await moveTo(300, 40);
   await expect(toolbar).toHaveAttribute("data-orientation", "horizontal");
-  await moveTo(300, 340);
+  await moveTo(300, 300);
   await expect(toolbar).toHaveAttribute("data-orientation", "horizontal");
   await moveTo(1075, 350);
   await expect(toolbar).toHaveAttribute("data-edge", "right");

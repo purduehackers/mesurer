@@ -28,10 +28,15 @@ Add `--json` to `list` or `show` for machine-readable output. An `<id>` can be t
    - Without a source, search for the element's text, classes or selector.
    - **Viewport** says how wide the window was. If a change only makes sense at that width, put
      it in a media query or a responsive class instead of changing every width.
-3. **Requested style changes** (a "tweak") are exact: `property: from → to`. If a token is given
-   (`--spacing-4`, `--radius-lg`), use that token or the class that maps to it (Tailwind:
-   `p-4`, `rounded-lg`) instead of the raw value. The person may have applied the tweak to every
-   element with the same class; check the comment text.
+3. **Requested style changes** (a "tweak") are exact: `property: from → to`. If a token is given,
+   use the token or the class that maps to it instead of the raw value:
+   - `--radius-lg`, `--text-sm`, `--color-red-500`: Tailwind `rounded-lg`, `text-sm`,
+     `text-red-500` / `bg-red-500`; elsewhere `var(--radius-lg)`.
+   - `--spacing * 6` is Tailwind v4's spacing scale: `p-6`, `px-6`, `gap-6`, `mt-6`.
+   - shadcn role colors (`--primary`, `--muted-foreground`): `text-primary`, `bg-muted` and so on.
+   Changes to `padding-left` and `padding-right` together are one `px-*`; top and bottom one `py-*`.
+   A change's `selector` that is a tag and classes (`a.btn.btn-primary`) means the person wanted
+   it on every element with those classes: change the shared class or component, not one place.
 4. Make the change in the source. Don't edit `.mesurer/comments.json` by hand: the CLI merges
    with what the browser is saving at the same moment, and a hand edit can lose it.
 5. `resolve <id> "note"`, with a short note on what you changed (file and what). If you could not

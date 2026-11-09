@@ -24,6 +24,7 @@ const SHORTCUT_TOOL_MODES: Partial<Record<string, ToolMode>> = {
   n: "pen",
   s: "selection",
   t: "text",
+  e: "tweak",
 }
 
 const isEscapeKey = (event: KeyboardEvent) =>
@@ -74,6 +75,8 @@ type HotkeyOptions = {
   hasComments: () => boolean
   minimizeMesurer: () => void
   restoreMesurer?: () => void
+  /** True while a tool (Tweak) is using the keyboard itself: every shortcut stands back. */
+  isKeyboardCaptured?: () => boolean
   shortcutsEnabled: boolean
   minimized: boolean
   undo: () => void
@@ -146,6 +149,7 @@ export const useHotkeys = (options: HotkeyOptions) => {
         )
       }
       const current = optionsRef.current
+      if (current.isKeyboardCaptured?.()) return
       const isFeatureAvailable = (feature: keyof ResolvedMesurerFeatures) =>
         current.features[feature] && current.isFeatureVisible(feature)
       if (

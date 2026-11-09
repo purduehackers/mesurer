@@ -109,6 +109,7 @@ type Options = {
   onInteract: () => void;
   onMinimize: () => void;
   onRestore?: () => void;
+  isKeyboardCaptured?: () => boolean;
   onToggleSettings: () => void;
   onToggleLayoutGuides: () => void;
   onCloseLayoutGuidesMenu: () => void;
@@ -254,6 +255,7 @@ export const useInteractionLifecycle = (options: Options) => {
      hasComments: options.hasComments,
     minimizeMesurer: options.onMinimize,
     restoreMesurer: options.onRestore,
+    isKeyboardCaptured: options.isKeyboardCaptured,
     shortcutsEnabled: options.shortcutsEnabled,
     minimized: options.minimized,
     undo: options.undo,

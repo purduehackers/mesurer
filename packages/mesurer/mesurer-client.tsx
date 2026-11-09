@@ -43,6 +43,8 @@ import { useXray } from "./hooks/use-xray";
 import { useArrowsPointer } from "./hooks/use-arrows-pointer";
 import { usePenPointer } from "./hooks/use-pen-pointer";
 import { copyCommentsForAgent, useCommentPointer } from "./comments";
+import { captureCommentTarget, createCommentId } from "./comments/dom";
+import type { TweakSaveInput } from "./tweak/tweak-tool";
 import { removePreviewSelection, scrollElementIntoView } from "./core/responsive";
 import { ERASER_WIDTH, PEN_KINDS, penInHand } from "./core/ink";
 import { createLayoutGuide, type LayoutGuide } from "./core/layout-guides";
@@ -424,6 +426,7 @@ export function MesurerClient({
     createDraft: createCommentDraft,
     cancelDraft: cancelCommentDraft,
     commitDraft: commitCommentDraft,
+    addThread: addCommentThread,
     addMessage: addCommentMessage,
     deleteComment: deleteCommentFromState,
     deleteAllComments: deleteAllCommentsFromState,
@@ -895,6 +898,29 @@ export function MesurerClient({
     },
     [recordSnapshot, setLayoutGuidesPersisted],
   );
+  // A Tweak saved: a comment thread on the element, carrying its exact style changes.
+  const tweakKeyboardRef = useRef(false);
+  const saveTweak = useCallback(({ element, changes, note }: TweakSaveInput) => {
+    const rect = element.getBoundingClientRect();
+    const target = captureCommentTarget(
+      element,
+      { x: rect.left + rect.width / 2, y: rect.top + Math.min(rect.height / 2, 12) },
+      ownerWindow,
+    );
+    const now = Date.now();
+    const id = createCommentId();
+    recordSnapshot();
+    addCommentThread({
+      id,
+      target,
+      messages: [{ id: createCommentId(), role: "user", text: note, createdAt: now }],
+      status: "open",
+      createdAt: now,
+      updatedAt: now,
+      changes,
+    });
+    return id;
+  }, [addCommentThread, ownerWindow, recordSnapshot]);
   const toggleResolvedComment = useCallback((id: string) => {
     recordSnapshot();
     toggleCommentResolved(id);
@@ -1543,6 +1569,7 @@ export function MesurerClient({
     onInteract: activateToolbar,
     onMinimize: minimizeMesurer,
     onRestore: restoreToolbar,
+    isKeyboardCaptured: () => tweakKeyboardRef.current,
     onToggleSettings: toggleSettings,
     onToggleLayoutGuides: toggleLayoutGuides,
     onCloseLayoutGuidesMenu: closeLayoutGuidesMenu,
@@ -1683,7 +1710,8 @@ export function MesurerClient({
       toolMode === "arrows" ||
       toolMode === "pen" ||
       toolMode === "text" ||
-      toolMode === "comments") &&
+      toolMode === "comments" ||
+      toolMode === "tweak") &&
     settings.lastToolMode !== toolMode
   ) {
     settings.setLastToolMode(toolMode);
@@ -1711,6 +1739,16 @@ export function MesurerClient({
       }}
       layoutGuides={layoutGuides}
       layoutGuidesVisible={layoutGuidesVisible}
+      tweak={{
+        active: enabled && !minimized && !responsiveOpen && toolMode === "tweak",
+        ownerDocument,
+        ownerWindow,
+        overlayRef,
+        highlightColor: settings.highlightColor,
+        comments,
+        onSave: saveTweak,
+        keyboardOwnedRef: tweakKeyboardRef,
+      }}
       responsive={responsiveOpen ? { onClose: toggleResponsive, guidesActive: toolMode === "guides", altPressed, guideOrientation, wanted: wantedPreview, onPreviewPress: closeToolbarMenus } : null}
       overlay={{
         enabled,

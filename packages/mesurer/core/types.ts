@@ -75,6 +75,10 @@ export type StyleChange = {
   to: string
   /** The design token the new value was snapped to, as `--name`. */
   token?: string
+  /** What the browser computed for `to`, to tell when the page's own CSS has caught up. */
+  computed?: string
+  /** The selector the change was previewed on: the element's own, or every one with its classes. */
+  selector?: string
 }
 
 export type CommentTarget = {
@@ -244,6 +248,7 @@ export type ToolMode =
   | "pen"
   | "text"
   | "comments"
+  | "tweak"
 
 export type OpenMenu =
   | { type: "settings" }

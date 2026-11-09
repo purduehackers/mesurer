@@ -44,6 +44,7 @@ import {
   CursorIcon,
   GearIcon,
   MinimizeIcon,
+  TweakIcon,
   MesurerMarkIcon,
   RulerIcon,
   RulersIcon,
@@ -1215,6 +1216,19 @@ function ToolbarComponent(
                                   )
                                 ) : null}
                               </div>
+                              {/* After the comments, not before: a button right before a caret group is drawn as its pair. */}
+                              <ToolbarButton
+                                {...tool("tweak")}
+                                active={toolMode === "tweak"}
+                                label="Tweak"
+                                shortcut="E"
+                                onClick={() => {
+                                  toggleTool("tweak");
+                                  setOpenMenu(null);
+                                }}
+                              >
+                                <TweakIcon size={20} />
+                              </ToolbarButton>
                               {features.settings ? <div ref={settingsRef} className="msr:relative msr:flex">
                                 <ToolbarButton
                                   {...tool("settings")}

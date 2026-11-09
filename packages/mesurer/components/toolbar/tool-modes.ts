@@ -48,6 +48,7 @@ export const exclusiveToolId = (
     case "pen":
     case "text":
     case "comments":
+    case "tweak":
       return mode;
     default:
       return null;

@@ -492,7 +492,9 @@ const isStyleChange = (value: unknown) => {
   return typeof change.property === "string" &&
     typeof change.from === "string" &&
     typeof change.to === "string" &&
-    (change.token === undefined || typeof change.token === "string")
+    (change.token === undefined || typeof change.token === "string") &&
+    (change.computed === undefined || typeof change.computed === "string") &&
+    (change.selector === undefined || typeof change.selector === "string")
 }
 
 const isDistanceOverlay = (value: unknown): value is DistanceOverlay => {
@@ -535,7 +537,7 @@ export const normalizeStoredSettings = (value: unknown): MesurerStoredSettings =
   if (!value || typeof value !== "object") return {}
   const input = value as Record<string, unknown>
   return {
-    ...(input.lastToolMode === "select" || input.lastToolMode === "selection" || input.lastToolMode === "guides" || input.lastToolMode === "arrows" || input.lastToolMode === "pen" || input.lastToolMode === "text"
+    ...(input.lastToolMode === "select" || input.lastToolMode === "selection" || input.lastToolMode === "guides" || input.lastToolMode === "arrows" || input.lastToolMode === "pen" || input.lastToolMode === "text" || input.lastToolMode === "tweak"
       ? { lastToolMode: input.lastToolMode }
       : {}),
     ...(isToolbarPosition(input.toolbarPosition) ? { toolbarPosition: normalizeToolbarPlacement(input.toolbarPosition) } : {}),
@@ -591,7 +593,8 @@ const isStoredToolMode = (value: unknown): value is ToolMode | "text-inspector" 
   value === "arrows" ||
   value === "pen" ||
   value === "text" ||
-  value === "comments"
+  value === "comments" ||
+  value === "tweak"
 
 export const normalizeSessionChrome = (value: unknown): MesurerSessionChrome | null => {
   if (!value || typeof value !== "object") return null
