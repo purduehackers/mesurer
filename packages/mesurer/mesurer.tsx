@@ -14,6 +14,8 @@ import { isResponsivePreview } from "./core/responsive";
 import { holdPreviewSideEffects } from "./core/preview-guard";
 import type { ThemeMode } from "./core/persistence";
 import { restoreReviewWorkspace } from "./core/review";
+import { useMemo } from "react";
+import { createBridgePersistence } from "./bridge/client";
 
 export type { MesurerProps } from "./mesurer-client";
 
@@ -43,7 +45,8 @@ export function MesurerUnstyled({
   guideStyle,
   rulerSettings,
   textStyle,
-  persistence,
+  persistence: persistenceProp,
+  bridge,
   onPersistenceError,
   captureVisibleTab,
   captureDom,
@@ -60,6 +63,15 @@ export function MesurerUnstyled({
     portalTarget ?? (typeof document !== "undefined" ? document.body : undefined);
 
   const hydrated = useHydrated();
+  const bridgeEndpoint = bridge === true ? "" : typeof bridge === "string" ? bridge : null;
+  const bridgePersistence = useMemo(
+    () =>
+      hydrated && !persistenceProp && bridgeEndpoint !== null
+        ? createBridgePersistence(bridgeEndpoint ? { endpoint: bridgeEndpoint } : {})
+        : undefined,
+    [bridgeEndpoint, hydrated, persistenceProp],
+  );
+  const persistence = persistenceProp ?? bridgePersistence;
   if (!hydrated) return null;
   // A page loaded in the responsive preview is there to be looked at: Mesurer stays out of it,
   // or it would open a preview of its own.

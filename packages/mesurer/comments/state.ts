@@ -9,6 +9,15 @@ export type CommentDraft = {
   point: { x: number; y: number }
 }
 
+// Resolved by the person in the browser, or opened again; opening drops the old resolution.
+const toggleThreadResolved = (comment: CommentThread, now: number): CommentThread => {
+  if (comment.status === "open") {
+    return { ...comment, status: "resolved", resolvedAt: now, resolvedBy: "user", updatedAt: now }
+  }
+  const { resolvedAt: _at, resolvedBy: _by, resolution: _note, ...rest } = comment
+  return { ...rest, status: "open", updatedAt: now }
+}
+
 export const useCommentState = (
   initialComments: CommentThread[] = [],
   onChange?: (comments: CommentThread[]) => void,
@@ -91,7 +100,7 @@ export const useCommentState = (
     updateComments((previous) =>
       previous.map((comment) =>
         comment.status === "open"
-          ? { ...comment, status: "resolved", updatedAt: now }
+          ? { ...comment, status: "resolved", resolvedAt: now, resolvedBy: "user", updatedAt: now }
           : comment,
       ),
     )
@@ -102,7 +111,8 @@ export const useCommentState = (
       previous.flatMap((comment) => {
         if (comment.id !== commentId) return [comment]
         const messages = comment.messages.filter((message) => message.id !== messageId)
-        return messages.length > 0 ? [{ ...comment, messages, updatedAt: Date.now() }] : []
+        const deletedMessageIds = [...(comment.deletedMessageIds ?? []), messageId]
+        return messages.length > 0 ? [{ ...comment, messages, deletedMessageIds, updatedAt: Date.now() }] : []
       }),
     )
     setSelectedId((previous) => (commentsRef.current.some((comment) => comment.id === previous) ? previous : null))
@@ -111,13 +121,7 @@ export const useCommentState = (
   const toggleResolved = (id: string) => {
     updateComments((previous) =>
       previous.map((comment) =>
-        comment.id === id
-          ? {
-              ...comment,
-              status: comment.status === "open" ? "resolved" : "open",
-              updatedAt: Date.now(),
-            }
-          : comment,
+        comment.id === id ? toggleThreadResolved(comment, Date.now()) : comment,
       ),
     )
   }

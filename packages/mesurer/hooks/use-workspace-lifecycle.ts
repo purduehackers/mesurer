@@ -8,7 +8,9 @@ import type {
   MesurerPageArtifacts,
   MesurerSessionChrome,
   PersistenceChangeSource,
+  PersistedCommentsUpdate,
 } from "../core/persistence";
+import { mergeThreadLists, sameThreads } from "../core/comment-merge";
 import {
   isPagedWorkspaceStore,
   mergeWorkspace,
@@ -507,12 +509,36 @@ export const useWorkspaceLifecycle = ({
     ],
   );
 
+  // Comments changed somewhere else (an agent through the dev-server bridge), merged into the
+  // ones on screen and into each page kept from this session. Merged, not replaced: a comment
+  // made here and not saved yet stays.
+  const applyCommentsUpdate = useCallback(
+    (update: PersistedCommentsUpdate) => {
+      const currentKey = appliedPageKeyRef.current;
+      const current = commentsRef.current;
+      const next = mergeThreadLists(current, update.byPage[currentKey] ?? [], update.deleted);
+      if (!sameThreads(current, next)) {
+        commentsRef.current = next;
+        setComments(next);
+      }
+      for (const [key, artifacts] of pageWorkspacesRef.current) {
+        if (key === currentKey) continue;
+        const own = artifacts.comments ?? [];
+        const merged = mergeThreadLists(own, update.byPage[key] ?? [], update.deleted);
+        if (!sameThreads(own, merged)) pageWorkspacesRef.current.set(key, { ...artifacts, comments: merged });
+      }
+    },
+    [appliedPageKeyRef, commentsRef, pageWorkspacesRef, setComments],
+  );
+
   const applyPersistenceSnapshot = useCallback(
     (
       snapshot: MesurerPersistenceSnapshot | null,
       source?: PersistenceChangeSource,
     ) => {
       if (!snapshot) return;
+      if (snapshot.comments) applyCommentsUpdate(snapshot.comments);
+      if (source?.comments && source.settings === false && source.workspace === false) return;
       applyingExternalPersistenceRef.current = true;
       const nextSettings = sanitizeStoredSettings(
         ownerWindow,
@@ -535,6 +561,7 @@ export const useWorkspaceLifecycle = ({
       }, 0);
     },
     [
+      applyCommentsUpdate,
       applyingExternalPersistenceRef,
       applyPersistedWorkspace,
       ownerWindow,

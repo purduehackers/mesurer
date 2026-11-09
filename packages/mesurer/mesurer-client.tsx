@@ -145,6 +145,12 @@ export type MesurerProps = {
   rulerSettings?: Partial<RulerSettings>;
   textStyle?: Partial<TextStyleSettings>;
   persistence?: MesurerPersistence;
+  /**
+   * Keep comments in the project through the dev server (`mesurer/vite`), where a coding agent
+   * can answer and resolve them. `true` uses `/__mesurer/comments`; a string is another endpoint.
+   * Ignored when `persistence` is given.
+   */
+  bridge?: boolean | string;
   onPersistenceError?: (error: unknown) => void;
   captureVisibleTab?: () => Promise<Blob>;
   captureDom?: ((ownerDocument: Document, ownerWindow: Window) => Promise<CapturedReviewImage>) | false;
@@ -193,7 +199,7 @@ export function MesurerClient({
   hoverHighlightEnabled,
   layoutDetailsEnabled,
   persistOnReload,
-  persistSession = false,
+  persistSession: persistSessionProp = false,
   shortcutsEnabled: shortcutsEnabledDefault,
   theme: themeDefault,
   portalTarget,
@@ -227,6 +233,7 @@ export function MesurerClient({
     | "persistKey"
     | "persistSession"
     | "persistence"
+    | "bridge"
     | "onPersistenceError"
     | "guideStyle"
     | "rulerSettings"
@@ -266,6 +273,8 @@ export function MesurerClient({
   }) {
   const ownerDocument = portalTarget.ownerDocument ?? document;
   const ownerWindow = ownerDocument.defaultView ?? window;
+  // A persistence something else reads (the dev-server bridge) is written whatever the settings say.
+  const persistSession = persistSessionProp || Boolean(persistence?.persistsWorkspace);
   const {
     pageKey,
     appliedPageKeyRef,
@@ -416,16 +425,33 @@ export function MesurerClient({
     cancelDraft: cancelCommentDraft,
     commitDraft: commitCommentDraft,
     addMessage: addCommentMessage,
-    deleteComment,
-    deleteAllComments,
+    deleteComment: deleteCommentFromState,
+    deleteAllComments: deleteAllCommentsFromState,
     resolveAllComments,
-    deleteMessage: deleteCommentMessage,
+    deleteMessage: deleteCommentMessageFromState,
     toggleResolved: toggleCommentResolved,
     updateTarget: updateCommentTarget,
     updateMessage: updateCommentMessage,
     layoutGuides,
     layoutGuidesRef,
   } = workspace;
+  // Deleting is said out loud to the persistence, for one that merges (the dev-server bridge):
+  // a comment missing from a save is not enough to tell it was deleted.
+  const deleteComment = (id: string) => {
+    activePersistence.commentsDeleted?.([id]);
+    deleteCommentFromState(id);
+  };
+  const deleteAllComments = () => {
+    activePersistence.commentsDeleted?.(comments.map((comment) => comment.id));
+    deleteAllCommentsFromState();
+  };
+  const deleteCommentMessage = (commentId: string, messageId: string) => {
+    const comment = comments.find((item) => item.id === commentId);
+    if (comment && comment.messages.every((message) => message.id === messageId)) {
+      activePersistence.commentsDeleted?.([commentId]);
+    }
+    deleteCommentMessageFromState(commentId, messageId);
+  };
   const copyAllComments = async () => {
     const copied = await copyCommentsForAgent(comments, ownerWindow);
     if (copied) ownerWindow.dispatchEvent(new Event("mesurer:comments-copied"));

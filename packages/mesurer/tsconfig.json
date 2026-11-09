@@ -10,8 +10,22 @@
     "declaration": true,
     "emitDeclarationOnly": false,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "types": []
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "bridge/store.ts",
+    "bridge/handler.ts",
+    "bridge/vite.ts",
+    "bridge/server.ts",
+    "bridge/cli.ts",
+    "bridge/*.node.test.ts"
+  ]
 }

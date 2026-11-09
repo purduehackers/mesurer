@@ -23,6 +23,20 @@ export {
   normalizeStoredWorkspace,
   isPagedWorkspaceStore,
 } from "./core/persistence";
+export { createBridgePersistence } from "./bridge/client";
+export type { BridgePersistenceOptions } from "./bridge/client";
+export type {
+  BridgeDocument,
+  BridgeThread,
+} from "./bridge/protocol";
+export type {
+  CommentMessage,
+  CommentRole,
+  CommentSourceHint,
+  CommentTarget,
+  CommentThread,
+  StyleChange,
+} from "./core/types";
 export type {
   MesurerPersistence,
   MesurerPersistenceSnapshot,

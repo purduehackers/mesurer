@@ -3,7 +3,10 @@ import type { CommentThread } from "../core/types"
 const formatTarget = (comment: CommentThread) => {
   const { target } = comment
   const text = target.textSnippet ? `${target.textSnippet}` : ""
-  return `[<${target.tagName}>${text}</${target.tagName}> selector: \`${target.selector}\`]`
+  const source = target.source
+    ? ` source: \`${target.source.file}${target.source.line ? `:${target.source.line}` : ""}\``
+    : ""
+  return `[<${target.tagName}>${text}</${target.tagName}> selector: \`${target.selector}\`${source}]`
 }
 
 type Viewport = {
@@ -12,8 +15,15 @@ type Viewport = {
 }
 
 const formatFeedback = (comment: CommentThread) => {
-  const messages = comment.messages.map((message) => message.text)
-  return messages.length === 1 ? messages[0] : messages.map((message) => `- ${message}`).join("\n")
+  const messages = comment.messages.map((message) =>
+    message.role === "agent" ? `(agent) ${message.text}` : message.text,
+  )
+  const text = messages.length === 1 ? messages[0] : messages.map((message) => `- ${message}`).join("\n")
+  if (!comment.changes?.length) return text
+  const changes = comment.changes.map(
+    (change) => `  ${change.property}: ${change.from} → ${change.to}${change.token ? ` (token ${change.token})` : ""}`,
+  )
+  return [text, "Style changes:", ...changes].filter(Boolean).join("\n")
 }
 
 // Where a comment was left: the page, and the size of the window it was in.

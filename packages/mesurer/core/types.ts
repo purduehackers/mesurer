@@ -51,11 +51,30 @@ export type TextAnnotation = {
   style?: TextStyleSettings
 }
 
+export type CommentRole = "user" | "agent"
+
 export type CommentMessage = {
   id: string
-  role: "user"
+  /** Who wrote it: the person in the browser, or a coding agent through the dev-server bridge. */
+  role: CommentRole
   text: string
   createdAt: number
+}
+
+/** Where in the project's source an element came from, when the dev server says so. */
+export type CommentSourceHint = {
+  file: string
+  line?: number
+  column?: number
+}
+
+/** One style property changed with the Tweak tool, from what the page had to what is wanted. */
+export type StyleChange = {
+  property: string
+  from: string
+  to: string
+  /** The design token the new value was snapped to, as `--name`. */
+  token?: string
 }
 
 export type CommentTarget = {
@@ -77,6 +96,8 @@ export type CommentTarget = {
   viewport?: { width: number; height: number }
   /** That window was a responsive preview of this size, not the page itself. */
   preview?: boolean
+  /** The source file and line of the element, or of its nearest ancestor that has one. */
+  source?: CommentSourceHint
 }
 
 export type CommentThread = {
@@ -86,6 +107,15 @@ export type CommentThread = {
   status: "open" | "resolved"
   createdAt: number
   updatedAt: number
+  /** When it was last marked resolved, and by whom. */
+  resolvedAt?: number
+  resolvedBy?: CommentRole
+  /** What the agent did about it, said when resolving. */
+  resolution?: string
+  /** A Tweak: style changes asked for on the element, instead of (or besides) words. */
+  changes?: StyleChange[]
+  /** Messages deleted from the thread, so a copy that still has one does not bring it back. */
+  deletedMessageIds?: string[]
 }
 
 export type Rect = {

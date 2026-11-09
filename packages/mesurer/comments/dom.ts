@@ -4,7 +4,7 @@ import { isResponsivePreview } from "../core/responsive"
 import { getTargetElement } from "../core/selection"
 import { createId } from "../core/utils"
 import { getElementSelector } from "../core/selector"
-import type { CommentTarget, Point, Rect } from "../core/types"
+import type { CommentSourceHint, CommentTarget, Point, Rect } from "../core/types"
 
 const MAX_HTML_LENGTH = 4000
 const MAX_TEXT_LENGTH = 240
@@ -18,6 +18,28 @@ const getElementAttributes = (element: Element) => {
     attributes[attribute.name] = attribute.value.slice(0, MAX_TEXT_LENGTH)
   }
   return attributes
+}
+
+// Where the element is in the project's source, from what a dev server writes on it. Astro puts
+// `data-astro-source-file` and `data-astro-source-loc` ("line:column") on elements from .astro
+// files; an element without them (inside a React island, say) takes its nearest ancestor's.
+export const getSourceHint = (element: Element): CommentSourceHint | undefined => {
+  let node: Element | null = element
+  while (node) {
+    const file = node.getAttribute("data-astro-source-file")
+    if (file) {
+      const [line, column] = (node.getAttribute("data-astro-source-loc") ?? "")
+        .split(":")
+        .map((part) => Number.parseInt(part, 10))
+      return {
+        file,
+        ...(Number.isFinite(line) ? { line } : {}),
+        ...(Number.isFinite(column) ? { column } : {}),
+      }
+    }
+    node = node.parentElement
+  }
+  return undefined
 }
 
 const getFramePath = (element: Element) => {
@@ -109,7 +131,9 @@ export const captureCommentTarget = (
   const rect = getRectFromDom(element)
   const frame = getFramePath(element)
   const pageView = getPageView(element, ownerWindow)
+  const source = getSourceHint(element)
   return {
+    ...(source ? { source } : null),
     url: pageView.location.href,
     viewport: { width: pageView.innerWidth, height: pageView.innerHeight },
     ...(isResponsivePreview(pageView) ? { preview: true } : null),

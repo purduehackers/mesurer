@@ -213,7 +213,7 @@ export function CommentThreadCard({
           {comment.messages.map((item, index) => (
             <div key={item.id} className={`msr:group msr:relative ${index === 0 ? "" : "msr:mt-3"}`}>
               <div className="msr:flex msr:items-center msr:justify-between msr:gap-2 msr:text-[11px] msr:text-ink-500">
-                <span className="msr:font-medium msr:text-ink-700">You</span>
+                <span className="msr:font-medium msr:text-ink-700">{item.role === "agent" ? "Agent" : "You"}</span>
                 <time dateTime={new Date(item.createdAt).toISOString()}>{formatTime(item.createdAt)}</time>
               </div>
               <div className="msr:relative">
@@ -303,6 +303,27 @@ export function CommentThreadCard({
           ))}
         </div>
       </div>
+
+      {comment.changes?.length ? (
+        <ul data-mesurer-comment-changes className="msr:mt-3 msr:space-y-0.5 msr:rounded-md msr:bg-ink-50 msr:px-2 msr:py-1.5 msr:font-mono msr:text-[11px] msr:text-ink-700">
+          {comment.changes.map((change) => (
+            <li key={change.property} style={{ overflowWrap: "anywhere" }}>
+              {change.property}: <span className="msr:text-ink-500">{change.from}</span> → {change.token ? `var(${change.token})` : change.to}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {comment.status === "resolved" && (comment.resolvedBy || comment.resolution) ? (
+        <p
+          data-mesurer-comment-resolution
+          className="msr:mt-3 msr:text-[11px] msr:text-ink-500"
+          style={{ overflowWrap: "anywhere" }}
+        >
+          Resolved{comment.resolvedBy === "agent" ? " by agent" : comment.resolvedBy === "user" ? " by you" : ""}
+          {comment.resolution ? <span className="msr:text-ink-700"> · {comment.resolution}</span> : null}
+        </p>
+      ) : null}
 
       <div className="msr:mt-3">
         <CommentComposer

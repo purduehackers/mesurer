@@ -205,15 +205,24 @@ export const mergeWorkspace = (
   ...toPageArtifacts(artifacts ?? EMPTY_PAGE_ARTIFACTS),
 })
 
+/** Comments that changed somewhere else (the dev-server bridge), by the page they are on. */
+export type PersistedCommentsUpdate = {
+  byPage: Record<string, CommentThread[]>
+  /** Ids of threads deleted, with when. A thread missing from `byPage` but not here is new on this side. */
+  deleted: Record<string, number>
+}
+
 export type MesurerPersistenceSnapshot = {
   settings: MesurerStoredSettings
   workspace: MesurerStoredWorkspace | PagedWorkspaceStore | null
   revision?: PersistenceRevision
+  comments?: PersistedCommentsUpdate
 }
 
 export type PersistenceChangeSource = {
   settings?: boolean
   workspace?: boolean
+  comments?: boolean
 }
 
 export type MesurerPersistence = {
@@ -229,6 +238,10 @@ export type MesurerPersistence = {
     ) => void,
   ) => () => void
   setErrorHandler?: (handler: ((error: unknown) => void) | undefined) => void
+  /** Save the workspace even when "keep on reload" is off, because something else reads it. */
+  persistsWorkspace?: boolean
+  /** Told which comment threads the person deleted, for a store that merges instead of replacing. */
+  commentsDeleted?: (ids: string[]) => void
 }
 
 type StoredRecord = {
@@ -409,7 +422,7 @@ const isTextAnnotation = (value: unknown): value is TextAnnotation => {
   )
 }
 
-const isCommentThread = (value: unknown): value is CommentThread => {
+export const isCommentThread = (value: unknown): value is CommentThread => {
   if (!value || typeof value !== "object") return false
   const comment = value as Record<string, unknown>
   const target = comment.target as Record<string, unknown> | undefined
@@ -449,13 +462,36 @@ const isCommentThread = (value: unknown): value is CommentThread => {
       const item = message as Record<string, unknown>
       return (
         typeof item.id === "string" &&
-        item.role === "user" &&
+        (item.role === "user" || item.role === "agent") &&
         typeof item.text === "string" &&
         item.text.length > 0 &&
         typeof item.createdAt === "number"
       )
-    })
+    }) &&
+    (comment.resolvedAt === undefined || isFiniteNumber(comment.resolvedAt)) &&
+    (comment.resolvedBy === undefined || comment.resolvedBy === "user" || comment.resolvedBy === "agent") &&
+    (comment.resolution === undefined || typeof comment.resolution === "string") &&
+    (target.source === undefined || isSourceHint(target.source)) &&
+    (comment.changes === undefined || (Array.isArray(comment.changes) && comment.changes.every(isStyleChange))) &&
+    (comment.deletedMessageIds === undefined || (Array.isArray(comment.deletedMessageIds) && comment.deletedMessageIds.every((id) => typeof id === "string")))
   )
+}
+
+const isSourceHint = (value: unknown) => {
+  if (!value || typeof value !== "object") return false
+  const source = value as Record<string, unknown>
+  return typeof source.file === "string" &&
+    (source.line === undefined || isFiniteNumber(source.line)) &&
+    (source.column === undefined || isFiniteNumber(source.column))
+}
+
+const isStyleChange = (value: unknown) => {
+  if (!value || typeof value !== "object") return false
+  const change = value as Record<string, unknown>
+  return typeof change.property === "string" &&
+    typeof change.from === "string" &&
+    typeof change.to === "string" &&
+    (change.token === undefined || typeof change.token === "string")
 }
 
 const isDistanceOverlay = (value: unknown): value is DistanceOverlay => {
@@ -856,6 +892,8 @@ export const createPageScopedPersistence = (
     clearWorkspace: () => base.clearWorkspace(),
     clearSettings: () => base.clearSettings(),
     setErrorHandler: (handler) => base.setErrorHandler?.(handler),
+    ...(base.persistsWorkspace ? { persistsWorkspace: true } : {}),
+    ...(base.commentsDeleted ? { commentsDeleted: base.commentsDeleted } : {}),
     subscribe: (listener) => {
       if (!base.subscribe) return () => {}
       return base.subscribe((snapshot, source) => {
@@ -867,6 +905,7 @@ export const createPageScopedPersistence = (
           {
             settings: snapshot.settings,
             workspace: workspaceForPage(snapshot.workspace),
+            ...(snapshot.comments ? { comments: snapshot.comments } : {}),
           },
           source,
         )
