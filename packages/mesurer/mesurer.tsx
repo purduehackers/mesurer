@@ -66,7 +66,8 @@ export function MesurerUnstyled({
   const bridgeEndpoint = bridge === true ? "" : typeof bridge === "string" ? bridge : null;
   const bridgePersistence = useMemo(
     () =>
-      hydrated && !persistenceProp && bridgeEndpoint !== null
+      // Never in the extension, which runs on any site: compiled out there (see core/build.ts).
+      !globalThis.__MESURER_EXTENSION__ && hydrated && !persistenceProp && bridgeEndpoint !== null
         ? createBridgePersistence(bridgeEndpoint ? { endpoint: bridgeEndpoint } : {})
         : undefined,
     [bridgeEndpoint, hydrated, persistenceProp],

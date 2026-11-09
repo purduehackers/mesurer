@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 const extensionRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = path.join(extensionRoot, "dist");
 // Measured baseline and rationale: ../BUNDLE_SIZE.md. Keep increases reviewable.
-const maxContentGzipBytes = 218 * 1024;
+// Raised from 218 KiB in the purduehackers fork for browse mode and the Tweak tool; upstream had
+// 0.1 KiB of headroom left. The comments bridge itself is compiled out of the extension.
+const maxContentGzipBytes = 232 * 1024;
 
 const getFiles = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });

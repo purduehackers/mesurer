@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import mesurerBridge from "../../packages/mesurer/bridge/vite";
 
 // LOCAL TESTING ONLY. Keeps the reviews the extension saves, for as long as the dev server runs,
 // so a review made on any site opens here. It stands in for the review API.
@@ -53,7 +54,13 @@ const npmDownloads = async (): Promise<number | null> => {
 };
 
 export default defineConfig(async ({ command }) => ({
-  plugins: [tailwindcss(), react(), localReviews()],
+  plugins: [
+    tailwindcss(),
+    react(),
+    localReviews(),
+    // The comments bridge, for the e2e tests: comments go to apps/site/.mesurer/comments.json.
+    mesurerBridge({ file: process.env.MESURER_BRIDGE_FILE ?? ".mesurer/comments.json" }),
+  ],
   define: {
     __MESURER_DOWNLOADS__: JSON.stringify(await npmDownloads()),
     __MESURER_SNAPDOM_CAPTURE__: "true",
