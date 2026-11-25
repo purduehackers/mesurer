@@ -490,10 +490,6 @@ html[data-mesurer-resize-cursor] [data-mesurer-overlay][data-mesurer-inspect] *,
   visibility: hidden;
 }
 
-.mesurer-toolbar-restore svg {
-  transform: translate(-0.5px, 0.5px);
-}
-
 .mesurer-toolbar-tool-stage {
   flex: none;
   min-width: 0;

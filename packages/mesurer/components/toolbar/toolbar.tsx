@@ -822,6 +822,27 @@ function ToolbarComponent(
                       inert={minimized ? true : undefined}
                     >
                       <div ref={expandedPanelRef} className="mesurer-toolbar-expanded mesurer-toolbar-flow msr:flex msr:w-max msr:items-stretch msr:gap-1 msr:pl-1">
+                        {/* First in the bar: it sits where the restore button appears once minimized. */}
+                        {/* No divider after it: one more 1px line makes the bar an odd length, and a
+                            centered bar then sits on a half pixel. */}
+                        {/* Centered in a cell of its own: the row stretches its children to the bar's
+                            height, and a bare button would sit at the top of that. */}
+                        {onMinimize ? (
+                          <div className="msr:grid msr:place-items-center">
+                            <ToolbarButton
+                              {...tool("minimize")}
+                              active={false}
+                              label="Minimize"
+                              shortcut="`"
+                              onClick={() => {
+                                dismissCaptureToasts();
+                                onMinimize();
+                              }}
+                            >
+                              <MinimizeIcon size={20} />
+                            </ToolbarButton>
+                          </div>
+                        ) : null}
                         <ToolGroupSwitch
                           value={toolGroup}
                           onChange={selectToolGroup}
@@ -1268,20 +1289,6 @@ function ToolbarComponent(
                                   )
                                   : null}
                               </div> : null}
-                              {onMinimize ? (
-                                <ToolbarButton
-                                  {...tool("minimize")}
-                                  active={false}
-                                  label="Minimize"
-                                  shortcut="`"
-                                  onClick={() => {
-                                    dismissCaptureToasts();
-                                    onMinimize();
-                                  }}
-                                >
-                                  <MinimizeIcon size={20} />
-                                </ToolbarButton>
-                              ) : null}
                             </ToolbarGroup>
                           </div>
                         </div>
