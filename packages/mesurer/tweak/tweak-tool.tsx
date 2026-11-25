@@ -343,13 +343,14 @@ export function TweakTool({
       if (isEditable(event.target) || isEditable(ownerDocument.activeElement)) return
       const handled = (() => {
         switch (event.key) {
+          // The properties are a vertical list: ↑/↓ move between them, ←/→ change the value.
           case "ArrowUp":
           case "ArrowDown":
-            nudge(event.key === "ArrowUp" ? 1 : -1, event.shiftKey)
+            setCursor((index) => (index + (event.key === "ArrowDown" ? 1 : -1) + properties.length) % properties.length)
             return true
           case "ArrowLeft":
           case "ArrowRight":
-            setCursor((index) => (index + (event.key === "ArrowRight" ? 1 : -1) + properties.length) % properties.length)
+            nudge(event.key === "ArrowRight" ? 1 : -1, event.shiftKey)
             return true
           case "t":
           case "T":
@@ -642,7 +643,7 @@ function TweakPanel(props: TweakPanelProps) {
         {props.before ? <span className="msr:self-center msr:text-[11px] msr:text-ink-500">Showing before</span> : null}
       </div>
       <p className="msr:px-3 msr:text-[10.5px] msr:leading-4 msr:text-ink-500">
-        ↑↓ change · ⇧ ×10 · ←→ property · hold B for before
+        ←→ change · ⇧ ×10 · ↑↓ property · hold B for before
       </p>
       <div className="msr:px-3 msr:pb-3 msr:pt-2">
         <textarea

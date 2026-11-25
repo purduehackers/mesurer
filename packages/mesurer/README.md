@@ -144,8 +144,8 @@ middleware. In React apps, `createBridgePersistence()` can be passed as `persist
 
 ## Tweak tool
 
-Press `E`, click an element, and change it with the keyboard: `↑`/`↓` change the value
-(`Shift` for ×10), `←`/`→` move between properties, `T` snaps to the page's tokens (Tailwind v4
+Press `E`, click an element, and change it with the keyboard: `←`/`→` change the value
+(`Shift` for ×10), `↑`/`↓` move between properties, `T` snaps to the page's tokens (Tailwind v4
 `@theme`, shadcn variables, any `:root` custom properties), `A` applies to every element with the
 same classes, hold `B` to see before. `Enter` saves the changes as a comment with exact
 `from → to` values and tokens, `Esc` reverts. Saved changes stay previewed until the page's own

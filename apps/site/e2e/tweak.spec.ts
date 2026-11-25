@@ -51,17 +51,17 @@ test("nudges padding by pixels and by tokens, saves it, and previews it until th
   await expect(panel).toContainText("src/pages/index.astro:12");
 
   // Scale is first; Padding Y next.
-  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
   await expect(panel.locator('[data-property="padding-y"]')).toHaveAttribute("aria-selected", "true");
 
   await page.keyboard.press("t"); // tokens off
-  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowRight");
   expect(await paddingTop(page)).toBe("81px");
-  await page.keyboard.press("Shift+ArrowUp");
+  await page.keyboard.press("Shift+ArrowRight");
   expect(await paddingTop(page)).toBe("91px");
 
   await page.keyboard.press("t"); // tokens on: the next spacing step above 91px is 24 × 4px
-  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowRight");
   expect(await paddingTop(page)).toBe("96px");
   await expect(panel.locator('[data-property="padding-y"]')).toContainText("--spacing * 24");
 
@@ -104,7 +104,7 @@ test("Escape reverts, and a color steps lighter", async ({ page }) => {
   await page.keyboard.press("t"); // tokens off: step lightness
   const background = () => heading(page).evaluate((node) => getComputedStyle(node).backgroundColor);
   const before = await background();
-  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowLeft");
   await expect.poll(background).not.toBe(before);
   await page.keyboard.press("Escape");
   await expect.poll(background).toBe(before);
@@ -117,9 +117,9 @@ test("radius snaps to the page's radius tokens", async ({ page }) => {
   await heading(page).click({ position: { x: 30, y: 20 } });
   const panel = page.getByRole("dialog", { name: "Tweak" });
   await panel.locator('[data-property="border-radius"]').click();
-  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowRight");
   await expect(panel.locator('[data-property="border-radius"]')).toContainText("--radius-sm");
-  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowRight");
   await expect(panel.locator('[data-property="border-radius"]')).toContainText("--radius-lg");
   expect(await heading(page).evaluate((node) => getComputedStyle(node).borderTopLeftRadius)).toBe("8px");
 });
@@ -129,7 +129,7 @@ test("scale grows type, padding and radius together", async ({ page }) => {
   await heading(page).click({ position: { x: 30, y: 20 } });
   const panel = page.getByRole("dialog", { name: "Tweak" });
   await expect(panel.locator('[data-property="scale"]')).toHaveAttribute("aria-selected", "true");
-  for (let step = 0; step < 4; step++) await page.keyboard.press("ArrowUp");
+  for (let step = 0; step < 4; step++) await page.keyboard.press("ArrowRight");
   const style = await heading(page).evaluate((node) => {
     const computed = getComputedStyle(node);
     return { fontSize: computed.fontSize, paddingTop: computed.paddingTop, paddingLeft: computed.paddingLeft };
