@@ -140,3 +140,34 @@ it("falls back to localStorage alone when the server has no bridge", async () =>
   expect((reloaded?.workspace as PagedWorkspaceStore).pages["/"]?.comments?.[0].id).toBe("comment-a")
   expect((await handler.store.read()).threads).toEqual([])
 })
+
+it("keeps one comment stream while subscribers come and go", async () => {
+  let opened = 0
+  let closed = 0
+  class CountingEventSource {
+    constructor() {
+      opened++
+    }
+    addEventListener() {}
+    close() {
+      closed++
+    }
+  }
+  const ownerWindow = Object.assign(fakeWindow(), { EventSource: CountingEventSource })
+  const persistence = createBridgePersistence({ ownerWindow: ownerWindow as unknown as Window & typeof globalThis })
+
+  let unsubscribe = persistence.subscribe!(() => {})
+  await until(() => opened === 1)
+  // re-renders unsubscribe and subscribe again right away, many times over
+  for (let i = 0; i < 40; i++) {
+    unsubscribe()
+    unsubscribe = persistence.subscribe!(() => {})
+  }
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect({ opened, closed }).toEqual({ opened: 1, closed: 0 })
+
+  // once nobody comes back, the stream closes
+  unsubscribe()
+  await until(() => closed === 1, 3000)
+  expect(opened).toBe(1)
+})

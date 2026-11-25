@@ -58,6 +58,8 @@ export const createBridgePersistence = (options: BridgePersistenceOptions = {}):
   let pendingPush: PagedWorkspaceStore | null = null
   let pushing = false
   let events: EventSource | null = null
+  // pending close after the last subscriber left (see subscribe)
+  let closeTimer: ReturnType<typeof setTimeout> | undefined
   const listeners = new Set<Listener>()
   let errorHandler: ((error: unknown) => void) | undefined
 
@@ -80,6 +82,21 @@ export const createBridgePersistence = (options: BridgePersistenceOptions = {}):
     for (const listener of listeners) listener(snapshot, COMMENTS_ONLY)
   }
 
+  // One live stream while anyone is subscribed. Opened only once the file is known to be there,
+  // and never while a stream is already open.
+  const openEvents = () => {
+    if (events || state !== "connected" || listeners.size === 0) return
+    if (typeof ownerWindow.EventSource !== "function") return
+    events = new ownerWindow.EventSource(`${endpoint}/events`)
+    events.addEventListener("comments", (event) => {
+      try {
+        receive(normalizeBridgeDocument(JSON.parse((event as MessageEvent<string>).data)))
+      } catch (error) {
+        errorHandler?.(error)
+      }
+    })
+  }
+
   const connect = () => {
     if (state !== "idle") return
     state = "connecting"
@@ -94,16 +111,7 @@ export const createBridgePersistence = (options: BridgePersistenceOptions = {}):
         }
         state = "connected"
         receive(normalizeBridgeDocument(await response.json()))
-        if (typeof ownerWindow.EventSource === "function") {
-          events = new ownerWindow.EventSource(`${endpoint}/events`)
-          events.addEventListener("comments", (event) => {
-            try {
-              receive(normalizeBridgeDocument(JSON.parse((event as MessageEvent<string>).data)))
-            } catch (error) {
-              errorHandler?.(error)
-            }
-          })
-        }
+        openEvents()
         flush()
       })
       .catch(() => {
@@ -194,8 +202,10 @@ export const createBridgePersistence = (options: BridgePersistenceOptions = {}):
       base.setErrorHandler?.(handler)
     },
     subscribe: (listener) => {
+      clearTimeout(closeTimer)
       connect()
       listeners.add(listener)
+      openEvents()
       const unsubscribeBase = base.subscribe?.((snapshot, source) => listener(withFileComments(snapshot), source))
       // A file read before this subscriber came is handed over now.
       if (document) {
@@ -204,10 +214,18 @@ export const createBridgePersistence = (options: BridgePersistenceOptions = {}):
       return () => {
         listeners.delete(listener)
         unsubscribeBase?.()
+        // Subscribers come and go on re-renders, often re-subscribing in the same tick. Closing
+        // and reopening the stream each time piles up connections until the browser's
+        // per-host limit (6 over HTTP/1.1) is used up and the page's own requests stall, so
+        // the stream is closed only if nobody has come back after a moment.
         if (listeners.size === 0) {
-          events?.close()
-          events = null
-          if (state === "connected") state = "idle"
+          clearTimeout(closeTimer)
+          closeTimer = setTimeout(() => {
+            if (listeners.size > 0) return
+            events?.close()
+            events = null
+            if (state === "connected") state = "idle"
+          }, 1000)
         }
       }
     },
